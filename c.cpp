@@ -65,20 +65,36 @@ void callback(void* arg, int status, int timeouts, unsigned char* abuf, int alen
 
     for (int i = 0; i < result.size(); i++) {
         std::vector<std::string> tmp = split(result[i], '=');
-        std::cout << tmp[0] << "\n";
-        if (tmp.size() > 1) {
-            end.push_back(tmp);
+        int ag = result[i].find(':');
+        std::string data, start;
+
+        if (ag != std::string::npos) {
+            data = result[i].substr(ag+1, result[i].length()-1);
+            start = result[i].substr(0, ag);
         } else {
+            data = "";
+            start = "";
+        }
+        if (tmp[0] == "ip4" || tmp[0] == "ip6"){
+            ips.push_back(tmp[1]);
             continue;
+        }
+        if (start == "ip4" || start == "ip6"){
+            ips.push_back(data);
+            continue;
+        }
+        if (start == "include") {
+            rederect.push_back(data);
+        }
+        if (tmp[0] == "redirect") {
+            rederect.push_back(tmp[1]);
         }
     }
 
     for (int i = 0; i < end.size(); i++) {
-        std::cout << end[i][0] << " " << end[i][1] << "\n";
         if (end[i][0] == "redirect" || end[i][0] == "include") {
             rederect.push_back(end[i][1]);
         } else if (end[i][0] == "ipv4") {
-            ips.push_back(end[i][1]);
         }
     }
 
@@ -152,7 +168,7 @@ int main(int argc, char* argv[]) {
     }
 
     for (int i = 0; i < ips.size(); i++){
-        std::cout << ips[i] << " ";
+        std::cout << ips[i] << "\n";
     }
 
     ares_destroy(channel);
