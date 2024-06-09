@@ -101,26 +101,21 @@ void callback(void* arg, int status, int timeouts, unsigned char* abuf, int alen
     ares_free_data(txt_out);
 }
 
-int main(int argc, char* argv[]) {
-    if (argc != 2) {
-        std::cerr << "Usage: " << argv[0] << " <domain>" << std::endl;
-        return 1;
-    }
-
-    const char* domain = argv[1];
-
+std::vector<std::string> get_ips(char* domain) {
     ares_channel channel;
     int status = ares_library_init(ARES_LIB_INIT_ALL);
     if (status != ARES_SUCCESS) {
         std::cerr << "Failed to initialize c-ares library: " << ares_strerror(status) << std::endl;
-        return 1;
+        ips = {};
+        return ips;
     }
 
     status = ares_init(&channel);
     if (status != ARES_SUCCESS) {
         std::cerr << "Failed to initialize c-ares channel: " << ares_strerror(status) << std::endl;
         ares_library_cleanup();
-        return 1;
+        ips = {};
+        return ips;
     }
 
     // Perform the DNS query for TXT records
@@ -167,12 +162,7 @@ int main(int argc, char* argv[]) {
         rederect.erase(rederect.begin());
     }
 
-    for (int i = 0; i < ips.size(); i++){
-        std::cout << ips[i] << "\n";
-    }
-
     ares_destroy(channel);
     ares_library_cleanup();
-
-    return 0;
+    return ips;
 }
